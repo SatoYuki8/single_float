@@ -6,35 +6,52 @@
 %i "comp_bit.h"
 
 module fivebit_comp{
-    input a<5>;
-    input b<5>;
+    input a<8>;
+    input b<8>;
     output l;
     instrin do;
 
-    comp_bit comp1, comp2, comp3, comp4, comp5;
+    comp_bit comp1, comp2, comp3, comp4, comp5,
+		comp6, comp7, copm8;
 
     instruct do par{
 	alt {
-	    (comp1.do(a<4>, b<4>).l == 0b1): l=0b1;
+	    (comp1.do(a<7>, b<7>).l == 0b1): l=0b1;
 	    (comp1.s == 0b1): l=0b0;
 	    (comp1.eq ==0b1): alt {
-		(comp2.do(a<3>, b<3>).l== 0b1): l=0b1;
-		(comp2.s== 0b1): l=0b0;
-		(comp2.eq== 0b1): alt {
-		    (comp3.do(a<2>, b<2>).l== 0b1): l=0b1;
-		    (comp3.s== 0b1): l=0b0;
-		    (comp3.eq== 0b1): alt {
-			(comp4.do(a<1>, b<1>).l== 0b1): l=0b1;
-			(comp4.s== 0b1): l=0b0;
-			(comp4.eq== 0b1): alt {
-			    (comp5.do(a<0>, b<0>).l== 0b1): l=0b1;
+		
+		(comp2.do(a<6>, b<6>).l == 0b1): l=0b1;
+		(comp2.s == 0b1): l=0b0;
+		(comp2.eq ==0b1): alt {
+		    
+		    (comp3.do(a<5>, b<5>).l == 0b1): l=0b1;
+		    (comp3.s == 0b1): l=0b0;
+		    (comp3.eq ==0b1): alt {	    
+			(comp4.do(a<4>, b<4>).l == 0b1): l=0b1;
+			(comp4.s == 0b1): l=0b0;
+			(comp4.eq ==0b1): alt {
+			    (comp5.do(a<3>, b<3>).l== 0b1): l=0b1;
 			    (comp5.s== 0b1): l=0b0;
-			    else: l=0b0;
+			    (comp5.eq== 0b1): alt {
+				(comp6.do(a<2>, b<2>).l== 0b1): l=0b1;
+				(comp6.s== 0b1): l=0b0;
+				(comp6.eq== 0b1): alt {
+				    (comp7.do(a<1>, b<1>).l== 0b1): l=0b1;
+				    (comp7.s== 0b1): l=0b0;
+				    (comp7.eq== 0b1): alt {
+					(comp8.do(a<0>, b<0>).l== 0b1): l=0b1;
+					(comp8.s== 0b1): l=0b0;
+					else: l=0b0;
+				    }
+				}
+			    }
 			}
 		    }
 		}
 	    }
 	}
-
     }
+    
 }
+
+
