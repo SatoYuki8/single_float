@@ -1,8 +1,8 @@
 declare sub_shift{
-  input exp_a<5>;
-  input exp_b<5>;
-  input frac_b<13>;
-  output shifted_frac_b<13>;
+  input exp_a<8>;
+  input exp_b<8>;
+  input frac_b<26>;
+  output shifted_frac_b<26>;
   output sticky; 
   instrin do;
 

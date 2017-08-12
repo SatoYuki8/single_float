@@ -1,7 +1,7 @@
 declare add_or_sub{
-  input a<13>;
-  input b<13>;
-  output result<13>;
+  input a<26>;
+  input b<26>;
+  output result<26>;
   output cout;
   instrin add;
   instrin sub;
