@@ -112,7 +112,7 @@ module add_half{
 			res_frac = rzas.shifted_frac;
 		    }
 		}
-		sum = sign_a || res_exp || res_frac<11:2>;
+		sum = sign_a || res_exp || res_frac<24:2>;
 	    }
 	}
 	
