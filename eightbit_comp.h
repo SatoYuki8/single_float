@@ -1,6 +1,6 @@
 declare fivebit_comp{
-  input a<5>;
-  input b<5>;
+  input a<8>;
+  input b<8>;
   output l;
   instrin do;
 
