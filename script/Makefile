@@ -1,22 +1,22 @@
 all:	
 
-half:	add_half.scr
-	rm -rf add_half.tmp
+single:	add_single.scr
+	rm -rf add_single.tmp
 
-add_half.scr:	add_half.tmp add_half.head
-	cat add_half.head add_half.tmp > $@
+add_single.scr:	add_single.tmp add_single.head
+	cat add_single.head add_single.tmp > $@
 
-add_half.tmp:	add_half.rb
+add_single.tmp:	add_single.rb
 	ruby $< gensec > $@
 
 
-half_add:	add_half_add.scr
-	rm -rf add_half_add.tmp
+single_add:	add_single_add.scr
+	rm -rf add_single_add.tmp
 
-add_half_add.scr:	add_half_add.tmp add_half.head
-	cat add_half.head add_half_add.tmp > $@
+add_single_add.scr:	add_single_add.tmp add_single.head
+	cat add_single.head add_single_add.tmp > $@
 
-add_half_add.tmp:	add_half_add.rb
+add_single_add.tmp:	add_single_add.rb
 	ruby $< gensec > $@
 
 comp:	

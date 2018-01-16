@@ -1,1 +1,1 @@
-Single Floating (32 bit)
+Floating
