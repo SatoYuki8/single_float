@@ -7,7 +7,7 @@
    |1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0| 
    |_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
     | |_____________| |___________________________________________|
-    |    exponent        fraction(23bit: precision=11bit)
+    |    exponent        fraction(23bit)
   sign   (8bit)  
  (1bit)
 
@@ -30,30 +30,61 @@ circuit BarrelShift{
     instrin do;
     
     sel t0<32>, t1<32>, t2<32>, t3<32>, t4<32>;
+    sel s0<2>, s1<4>, s2<8>, s3<16>, s4<32>;    
 
-    instruct do par{
+     instruct do par{
 	alt{
-	    (amount<0>): t0 = a >> 0b1;
-	    else: t0 = a;
+	    (amount<0>): par{
+		t0 = 0b0 || a<31:1>;         /* a >> 0b1 */ 
+		s0 = a<6>||0b0;
+	    }
+	    else: par{
+		t0 = a;
+		s0 = 0b00;
+	    }
 	}
 	alt{
-	    (amount<1>): t1 = t0 >> 0b10;
-	    else: t1 = t0;
+	    (amount<1>): par{
+		t1 = 0b00 || t0<31:2>;         /* t0 >> 0b10 */ 
+		s1 = t0<7:6>||s0;
+	    }
+	    else: par{
+		t1 = t0;
+		s1 = s0||0b00;
+	    }
 	}
 	alt{
-	    (amount<2>): t2 = t1 >> 0b100;
-	    else: t2 = t1;
+	    (amount<2>): par{
+		t2 = 0b0000 || t1<31:4>;         /* t1 >> 0b100 */ 
+		s2 = t1<9:6>||s1;
+	    }
+	    else: par{
+		t2 = t1;
+		s2 = s1||0b0000;
+	    }
 	}
 	alt{
-	    (amount<3>): t3 = t2 >> 0b1000;
-	    else: t3 = t2;
+	    (amount<3>): par{
+		t3 = 0b00000000 || t2<31:8>;         /* t2 >> 0b1000 */ 
+		s3 = t2<13:6>||s2;
+	    }
+	    else: par{
+		t3 = t2;
+		s3 = (s2||0b00000000);
+	    }
 	}
 	alt{
-	    (amount<4>): t4 = t3 >> 0b10000;
-	    else: t4 = t3;
+	    (amount<4>): par{
+		t4 = 0b0000000000000000 || t3<31:16>;         /* t3 >> 0b10000 */ 
+		s4 = t3<21:6>||s3;
+	    }
+	    else: par{
+		t4 = t3;
+		s4 = (s3||0b0000000000000000);
+	    }
 	}
 	
-	f = t4;
+	f = t4<31:1>|| /|(s4<29:0>);
     }
 }
 
@@ -122,6 +153,54 @@ circuit MantissaAdder{
     }
 }
 
+/* Increase Frac bit */
+declare IncreaseFrac{
+    input cin;
+    input in<23>;
+    output out<23>;
+    output p;
+    instrin do;
+
+    instr_arg do(cin, in);
+}
+
+module IncreaseFrac{
+    input cin;
+    input in<23>;
+    output out<23>;
+    output p;
+    sel cry<23>;
+    instrin do;
+
+    instruct do par{
+	p = /&(in);
+	cry =  (/&(in<21:0>) & cin)
+	    || (/&(in<20:0>) & cin)
+	    || (/&(in<19:0>) & cin)
+	    || (/&(in<18:0>) & cin)
+	    || (/&(in<17:0>) & cin)
+	    || (/&(in<16:0>) & cin)
+	    || (/&(in<15:0>) & cin)
+	    || (/&(in<14:0>) & cin)
+	    || (/&(in<13:0>) & cin)
+	    || (/&(in<12:0>) & cin)
+	    || (/&(in<11:0>) & cin)
+	    || (/&(in<10:0>) & cin)
+	    || (/&(in<9:0>) & cin)
+	    || (/&(in<8:0>) & cin)
+	    || (/&(in<7:0>) & cin)
+	    || (/&(in<6:0>) & cin)
+	    || (/&(in<5:0>) & cin)
+	    || (/&(in<4:0>) & cin)
+	    || (/&(in<3:0>) & cin)
+	    || (/&(in<2:0>) & cin)
+	    || (/&(in<1:0>) & cin)
+	    || (in<0> & cin)
+	    || cin;
+	out = in @ cry;
+    }
+}
+
 /************************* main module *******************************/
 circuit add_single{
     input a<32>, b<32>;
@@ -132,6 +211,7 @@ circuit add_single{
     BarrelShift bshift;
     LeadingZeroShift lzshift;
     MantissaAdder madd;
+    IncreaseFrac incfrac;
 
     /*start*/
     sel wdiff<9>;
@@ -150,6 +230,7 @@ circuit add_single{
     sel Cm<32>, Cs, Cexp<8>;    
 
     /*leading zero shift*/
+    sel round;
     sel z<32>;
 
     /*return resurt*/
@@ -171,12 +252,12 @@ circuit add_single{
 
 	/*pre-shift for adder operation*/
 	alt{
-	    (Aa<30:23> == 0b00000000): xmsb = 0b000;
+	    (Aa<30:0> == 0b0000000000000000000000000000000): xmsb = 0b000;
 	    else: xmsb = 0b001;
 	}
 
 	alt{
-	    (Bb<30:23> == 0b00000000): ymsb = 0b000;
+	    (Bb<30:0> == 0b0000000000000000000000000000000): ymsb = 0b000;
 	    else: ymsb = 0b001;
 	}
 
@@ -206,8 +287,20 @@ circuit add_single{
 	alt{
 	    (Cm == 0x00000000): z = 0x00000000;
 	    (Cexp == 0b00000000): z = Cs || Cexp || Cm<28:6>;
-	    else: z = Cs || ((Cexp + ^(lzshift.amount) + 0b1) + 0b1) ||
-		      lzshift.do(Cm<30:0>||0b0).f<30:8>;
+	    else: par{ 
+		lzshift.do(Cm<30:0> || 0b0);
+		round = lzshift.f<7>&(lzshift.f<8>|lzshift.f<6>| (/|lzshift.f<5:0>)); 
+
+		alt{
+		    (round): par{
+			incfrac.do(0b1, lzshift.f<30:8>);
+			z = Cs || ((Cexp + ^(lzshift.amount) + 0b1) + 0b1 + incfrac.p) ||
+			    incfrac.out;
+		    }
+		    else: z = Cs || ((Cexp + ^(lzshift.amount) + 0b1) + 0b1) ||
+			lzshift.do(Cm<30:0>||0b0).f<30:8>;
+		}
+	    }
 	}
 
 	/*return resurt*/
